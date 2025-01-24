@@ -12,7 +12,21 @@
     box-sizing: border-box;
 }
 
+::selection {
+    @apply bg-green-500 bg-opacity-50;
+}
+
 body,
 html {
-    @apply font-sans m-0 overflow-x-clip p-0 w-screen h-screen;
+    @apply bg-neutral-200 font-sans m-0 overflow-x-clip p-0 w-screen h-screen max-h-screen overflow-y-hidden;
+}
+
+input {
+    // @apply outline-none;
+}
+
+.children-select-none {
+    * {
+        @apply pointer-events-none select-none;
+    }
 }

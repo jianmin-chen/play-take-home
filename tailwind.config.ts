@@ -9,7 +9,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["'Archivo', 'Inter', sans-serif"]
+                sans: ["'Archivo', 'Inter', sans-serif"],
+                mono: ["Monaco, monospace"]
             }
         }
     },

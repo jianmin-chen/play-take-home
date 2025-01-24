@@ -5,8 +5,8 @@ Interact with a PDF using [play.ai]().
 ## Features
 
 - [ ] PDF file upload
-    - [ ] Parsed and displayed on a per-page basis
-    - [ ] Navigate between pages
+    - [X] Parsed and displayed on a per-page basis
+    - [X] Navigate between pages
 - [ ] Audio playback for current page
     - [ ] TTS with [play.ai]()'s TTS API, controls (play/pause) for audio playback
     - [ ] Dropdown for selecting voice

@@ -1,6 +1,7 @@
 {
     "arrowParens": "avoid",
     "bracketSameLine": true,
+    "bracketSpacing": false,
     "jsxSingleQuote": true,
     "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
     "quoteProps": "consistent",
