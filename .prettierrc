@@ -1,0 +1,12 @@
+{
+    "arrowParens": "avoid",
+    "bracketSameLine": true,
+    "jsxSingleQuote": true,
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "quoteProps": "consistent",
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 4,
+    "printWidth": 120,
+    "trailingComma": "none"
+}
