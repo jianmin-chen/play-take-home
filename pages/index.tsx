@@ -1,3 +1,7 @@
+import dynamic from "next/dynamic";
+
+const Viewer = dynamic(() => import("@/components/Viewer"), {ssr: false});
+
 export default function Index() {
-    return <h1>Hello, world!</h1>;
+    return <Viewer/>
 }

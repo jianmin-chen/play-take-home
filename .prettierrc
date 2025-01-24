@@ -2,11 +2,10 @@
     "arrowParens": "avoid",
     "bracketSameLine": true,
     "jsxSingleQuote": true,
-    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
     "quoteProps": "consistent",
     "semi": true,
     "singleQuote": true,
     "tabWidth": 4,
-    "printWidth": 120,
     "trailingComma": "none"
 }
