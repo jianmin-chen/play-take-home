@@ -60,4 +60,4 @@ export default {
         gender: 'female',
         style: 'Conversational'
     }
-};
+} as {[key: string]: Option};

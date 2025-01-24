@@ -1,10 +1,10 @@
 ## About
 
-Interact with a PDF using [play.ai]().
+Interact with a PDF using [play.ai]()'s audio features.
 
 ## Features
 
-- [ ] PDF file upload
+- [X] PDF file upload
     - [X] Parsed and displayed on a per-page basis
     - [X] Navigate between pages
 - [ ] Audio playback for current page
