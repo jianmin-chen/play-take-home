@@ -128,9 +128,9 @@ export default function Viewer() {
     const [voice, setVoice] = useState<string>(Object.keys(AUDIO_OPTIONS)[0]);
     useEffect(() => {
         if (audioElement.current?.src) {
-            audioElement.current!.src = "";
+            audioElement.current!.removeAttribute("src");
         }
-    }, [voice]);
+    }, [voice, currentPageIndex]);
 
     const [playing, setPlaying] = useState<PlayingState>(
         PlayingState.notPlaying
@@ -170,7 +170,6 @@ export default function Viewer() {
             if (playing === PlayingState.playing) {
                 return PlayingState.notPlaying;
             }
-            console.log(audioElement.current?.src, audioElement.current?.src.length);
             if (audioElement.current?.src.length) {
                 return PlayingState.playing;
             }
@@ -242,11 +241,11 @@ export default function Viewer() {
                     <IoIosCloudUpload className='text-xl text-neutral-700 transition-colors' />
                 </label>
                 <div className='flex items-center justify-center gap-4'>
-                    <VoiceDropdown
+                    {/* <VoiceDropdown
                         voice={voice}
                         setVoice={setVoice}
                         options={AUDIO_OPTIONS}
-                    />
+                    /> */}
                     <button
                         onClick={toggleTts}
                         disabled={playing === PlayingState.loading}
