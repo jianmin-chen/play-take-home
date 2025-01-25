@@ -126,6 +126,11 @@ export default function Viewer() {
 
     // Audio options.
     const [voice, setVoice] = useState<string>(Object.keys(AUDIO_OPTIONS)[0]);
+    useEffect(() => {
+        if (audioElement.current?.src) {
+            audioElement.current!.src = "";
+        }
+    }, [voice]);
 
     const [playing, setPlaying] = useState<PlayingState>(
         PlayingState.notPlaying
@@ -162,8 +167,13 @@ export default function Viewer() {
 
     const toggleTts = () => {
         setPlaying(playing => {
-            if (playing === PlayingState.playing)
+            if (playing === PlayingState.playing) {
                 return PlayingState.notPlaying;
+            }
+            console.log(audioElement.current?.src, audioElement.current?.src.length);
+            if (audioElement.current?.src.length) {
+                return PlayingState.playing;
+            }
             jobs.current.push(fetch('/api/tts', {
                 method: 'POST',
                 body: JSON.stringify({
