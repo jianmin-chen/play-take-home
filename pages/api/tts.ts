@@ -1,6 +1,5 @@
 import AUDIO_OPTIONS from '@/utils/options';
 import { NextApiRequest, NextApiResponse } from 'next';
-import fs from "fs";
 import { Readable } from 'stream';
 
 const expect = (ok: boolean, message: string) => {
@@ -13,11 +12,11 @@ export default async function handler(
 ) {
     try {
         if (req.method !== 'POST') throw new Error('POST to endpoint');
-        const {audioOption, text}: {audioOption: string; text: string} =
+        const {voice, text}: {voice: string; text: string} =
             JSON.parse(req.body);
         expect(
-            Object.keys(AUDIO_OPTIONS).includes(audioOption),
-            `Expect audioOption to be one of ${Object.keys(AUDIO_OPTIONS).join(' | ')}, got ${audioOption}`
+            Object.keys(AUDIO_OPTIONS).includes(voice),
+            `Expect audioOption to be one of ${Object.keys(AUDIO_OPTIONS).join(' | ')}, got ${voice}`
         );
         const response = await fetch('https://api.play.ai/api/v1/tts/stream', {
             method: 'POST',
@@ -29,7 +28,7 @@ export default async function handler(
             body: JSON.stringify({
                 model: 'PlayDialog',
                 text,
-                voice: AUDIO_OPTIONS[audioOption].value,
+                voice: AUDIO_OPTIONS[voice].value,
                 language: 'english',
                 // TODO: Replace with appropriate values.
                 speed: 1,

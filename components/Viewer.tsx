@@ -1,20 +1,23 @@
 import Controls from './Controls';
-import Dropdown from './Dropdown';
 import Highlighter from './Highlighter';
 import Loader from './Loader';
+import VoiceDropdown from './VoiceDropdown';
 import useResize from '@/hooks/useResize';
 import AUDIO_OPTIONS from '@/utils/options';
-import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { type ChangeEvent, ChangeEventHandler, EventHandler, useEffect, useRef, useState } from 'react';
-import { FaPlay } from 'react-icons/fa';
-import { IoIosCloudUpload } from 'react-icons/io';
-import { IoPlay, IoPause, IoCall } from 'react-icons/io5';
-import { pdfjs, Document, Page } from 'react-pdf';
+import {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
+import {
+    type ChangeEvent,
+    type ChangeEventHandler,
+    type EventHandler,
+    useEffect,
+    useRef,
+    useState
+} from 'react';
+import {IoIosCloudUpload} from 'react-icons/io';
+import {IoPlay, IoPause, IoCall, IoSettings} from 'react-icons/io5';
+import {pdfjs, Document, Page} from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
-
-
-const CHUNK_SIZE = 50000;
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -29,12 +32,12 @@ const options = {
 function Slider({
     numPages,
     currentPageIndex,
-    setcurrentPageIndex
+    setCurrentPageIndex
     // setPages
 }: {
     numPages: number;
     currentPageIndex: number;
-    setcurrentPageIndex: (page: number) => void;
+    setCurrentPageIndex: (page: number) => void;
 }) {
     const [ref, wrapper] = useResize<HTMLDivElement>();
 
@@ -46,7 +49,7 @@ function Slider({
         if (!isNaN(parseInt(input))) {
             const page = parseInt(input) - 1;
             if (page >= 0 && page <= numPages) {
-                setcurrentPageIndex(page);
+                setCurrentPageIndex(page);
                 document
                     .getElementById(`page_${page}`)
                     ?.scrollIntoView({behavior: 'smooth'});
@@ -79,7 +82,7 @@ function Slider({
                         key={`page_${index + 1}`}>
                         <Page
                             loading={Loader}
-                            onClick={() => setcurrentPageIndex(index)}
+                            onClick={() => setCurrentPageIndex(index)}
                             key={`page_${index + 1}`}
                             width={wrapper.width - 4}
                             pageIndex={index}
@@ -100,65 +103,53 @@ function Slider({
     );
 }
 
+enum PlayingState {
+    playing,
+    notPlaying,
+    loading
+}
+
 export default function Viewer() {
-    const [file, setFile] = useState<string | File>('/moonray.pdf');
-    const [currentPageIndex, setcurrentPageIndex] = useState<number>(0);
+    const [file, setFile] = useState<string | File>('/example.pdf');
+    const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
     const [numPages, setNumPages] = useState<number>(0);
 
     // Store ref to PDFDocumentProxy for cleanup in `useEffect`.
     const document = useRef<PDFDocumentProxy>(null);
+    const jobs = useRef<Promise<any>[]>([]);
 
     // Used for managing size of PDF depending on window size.
     // Uses custom hook `useResize`.
     const [ref, wrapper] = useResize<HTMLDivElement>();
 
-    // Store ref to audio component,
-    // rather than creating a new Audio() evertytime.
     const audioElement = useRef<HTMLAudioElement>(null);
 
-    // Store ref to `Highlighter` instance for moving selection ranges
-    // through page. Useful for cleaning up, resetting, etc.
-    const highlighter = useRef<Highlighter>(null);
-
     // Audio options.
-    const [audioOption, setAudioOption] = useState<string>(
-        Object.keys(AUDIO_OPTIONS)[0]
-    );
+    const [voice, setVoice] = useState<string>(Object.keys(AUDIO_OPTIONS)[0]);
 
-    const [playing, setPlaying] = useState<boolean>(false);
+    const [playing, setPlaying] = useState<PlayingState>(
+        PlayingState.notPlaying
+    );
     useEffect(() => {
-        if (playing) {
-            chunk();
-            audioElement.current!.addEventListener('ended', event => {
-                chunk();
-            });
-        } else highlighter.current?.hide();
+        if (playing === PlayingState.playing) {
+            audioElement.current!.play();
+        } else {
+            audioElement.current!.pause();
+        }
     }, [playing]);
 
-    const chunk = () => {
-        if (highlighter.current) {
-            const text = highlighter.current.next();
-            if (text)
-                fetch('/api/tts', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        audioOption,
-                        text
-                    })
-                }).then(res => res.blob()).then(blob => {
-                    const src = window.URL.createObjectURL(blob);
-                    const audio = audioElement.current!;
-                    audio.src = src;
-                    audio.play();
-                })
-            else highlighter.current.reset();
-        }
-    };
+    useEffect(() => {
+        setPlaying(PlayingState.notPlaying);
+        // Empty out jobs queue for past page.
+        // This is janky but I'm a bit over my time allotment.
+        Promise.all(jobs.current).then(() => {
+            setPlaying(PlayingState.notPlaying);
+        });
+    }, [currentPageIndex]);
 
     const onLoadSuccess = (props: PDFDocumentProxy): void => {
         setNumPages(props.numPages);
-        setcurrentPageIndex(0);
-        highlighter.current = null;
+        setCurrentPageIndex(0);
         document.current = props;
     };
 
@@ -169,32 +160,36 @@ export default function Viewer() {
         if (opened) setFile(opened);
     };
 
-    useEffect(() => {
-        return () => {
-            if (document.current) {
-                document.current.cleanup();
-                document.current.destroy();
-            }
-        };
-    }, []);
-
-    const createAgent = async (ctx: string) => {
-        // Create an agent with context.
-    };
-
     const toggleTts = () => {
         setPlaying(playing => {
-            if (playing) return false;
-
-            if (!highlighter.current) {
-                const page = ref.current!.querySelector('.textLayer');
-                if (page === null) return false;
-                highlighter.current = new Highlighter(page);
-            }
-
-            return true;
+            if (playing === PlayingState.playing)
+                return PlayingState.notPlaying;
+            jobs.current.push(fetch('/api/tts', {
+                method: 'POST',
+                body: JSON.stringify({
+                    voice,
+                    text: ref.current!.textContent
+                })
+            })
+                .then(res => res.blob())
+                .then(blob => {
+                    audioElement.current!.src =
+                        window.URL.createObjectURL(blob);
+                    setPlaying(PlayingState.playing);
+                }));
+            return PlayingState.loading;
         });
     };
+
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'production') {
+            const open = document.current;
+            if (open) {
+                open.cleanup();
+                open.destroy();
+            }
+        }
+    }, []);
 
     return (
         <div className='relative flex h-screen max-h-screen w-full flex-col'>
@@ -213,7 +208,7 @@ export default function Viewer() {
                     <Slider
                         numPages={numPages}
                         currentPageIndex={currentPageIndex}
-                        setcurrentPageIndex={setcurrentPageIndex}
+                        setCurrentPageIndex={setCurrentPageIndex}
                     />
                 </div>
                 <div className='col-span-10 overflow-auto'>
@@ -221,30 +216,44 @@ export default function Viewer() {
                         className='mx-3 max-h-full overflow-auto bg-neutral-200 pb-5 pt-3'
                         ref={ref}>
                         <Page
-                            className=''
                             width={wrapper.width}
-                            pageIndex={currentPageIndex}
-                        />
+                            pageIndex={currentPageIndex}></Page>
+                        {playing === PlayingState.loading && (
+                            <div className='absolute z-50 h-full w-full bg-neutral-100 bg-opacity-50'>
+                                <Loader />
+                            </div>
+                        )}
                     </div>
                 </div>
             </Document>
-            <div className='flex items-center justify-between border-t border-neutral-200 bg-white p-2'>
+            <div className='flex items-center justify-between border-t border-neutral-200 bg-white p-2 px-6'>
                 <label className='cursor-pointer'>
                     <input onChange={upload} type='file' className='hidden' />
-                    <IoIosCloudUpload />
+                    <IoIosCloudUpload className='text-xl text-neutral-700 transition-colors' />
                 </label>
-                <button
-                    onClick={toggleTts}
-                    disabled={!ref.current}
-                    className='flex h-[45px] w-[45px] items-center justify-center rounded-full bg-lime-500 p-3 transition-all hover:bg-lime-600'>
-                    {!playing ? (
-                        <IoPlay className='m-0 p-0 text-xl text-white' />
-                    ) : (
-                        <IoPause className='m-0 p-0 text-xl text-white' />
-                    )}
-                </button>
+                <div className='flex items-center justify-center gap-4'>
+                    <VoiceDropdown
+                        voice={voice}
+                        setVoice={setVoice}
+                        options={AUDIO_OPTIONS}
+                    />
+                    <button
+                        onClick={toggleTts}
+                        disabled={playing === PlayingState.loading}
+                        className='flex h-[45px] w-[45px] items-center justify-center rounded-full bg-lime-500 p-3 transition-all hover:bg-lime-600'>
+                        {playing === PlayingState.notPlaying ? (
+                            <IoPlay className='m-0 p-0 text-xl text-white' />
+                        ) : playing === PlayingState.playing ? (
+                            <IoPause className='m-0 p-0 text-xl text-white' />
+                        ) : (
+                            <Loader />
+                        )}
+                    </button>
+                </div>
                 <div>
-                    <IoCall />
+                    {/* <button className='text-neutral-700 transition-colors hover:text-lime-500'>
+                        <IoCall className='text-xl text-inherit' />
+                    </button> */}
                 </div>
             </div>
         </div>

@@ -9,6 +9,11 @@ export interface Option {
     style: string;
 }
 
+export interface AudioOptions {
+    voice?: string;
+    text?: string;
+}
+
 export default {
     "Angelo": {
         name: 'Angelo',
