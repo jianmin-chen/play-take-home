@@ -3,7 +3,7 @@ import Range from './Range';
 import VoiceDropdown from './VoiceDropdown';
 import useResize from '@/hooks/useResize';
 import AUDIO_OPTIONS, {type AudioOptions} from '@/utils/options';
-import type {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
+import {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
 import {useEffect, useMemo, useRef, useState, type ChangeEvent} from 'react';
 import {
     IoCall,
@@ -147,7 +147,6 @@ export default function Viewer() {
     // Store ref to PDFDocumentProxy for cleanup.
     const document = useRef<PDFDocumentProxy>(null);
     const audioElement = useRef<HTMLAudioElement>(null);
-    const jobs = useRef<AbortController[]>([]);
 
     const documentLoad = (props: PDFDocumentProxy) => {
         setNumPages(props.numPages);
@@ -160,6 +159,12 @@ export default function Viewer() {
         voice: Object.keys(AUDIO_OPTIONS)[0],
         speed: 1
     });
+
+    const optionsChanged = useRef<boolean>(false);
+    useEffect(() => {
+        optionsChanged.current = true;
+    }, [currentPageIndex, options]);
+
     const [playing, setPlaying] = useState<PlayingState>(PlayingState.none);
 
     const ended = () => {
@@ -174,6 +179,7 @@ export default function Viewer() {
 
     const beginTts = () =>
         new Promise((resolve, reject) => {
+            optionsChanged.current = false;
             fetch('/api/tts', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -210,6 +216,24 @@ export default function Viewer() {
 
     // Agent options.
     const [agent, setAgent] = useState<string | null>(null);
+
+    const toggleAgent = () => {
+        if (container.current) {
+            if (agent === null) {
+                // Create new agent.
+                fetch('/api/agent', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        ctx: container.current.textContent
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log(data);
+                    });
+            }
+        }
+    };
 
     const upload = (event: ChangeEvent<HTMLInputElement>) => {
         const {files} = event.target;
@@ -250,7 +274,12 @@ export default function Viewer() {
             if (playing === PlayingState.playing) return PlayingState.none;
             else if (playing === PlayingState.none) {
                 const player = audioElement.current;
-                if (player && player.hasAttribute('src') && player.src.length) {
+                if (
+                    player &&
+                    player.hasAttribute('src') &&
+                    player.src.length &&
+                    !optionsChanged.current
+                ) {
                     // Seems like there's already a audio file loaded -
                     // we must be halfway through playing. Let's play that.
                     return PlayingState.playing;
@@ -359,9 +388,12 @@ export default function Viewer() {
                         />
                     </div>
                 </div>
-                <button className='cursor-pointer text-neutral-700 transition-all ease-out hover:scale-[105%] hover:text-lime-600'>
+                <div />
+                {/* <button
+                    onClick={toggleAgent}
+                    className='cursor-pointer text-neutral-700 transition-all ease-out hover:scale-[105%] hover:text-lime-600'>
                     <IoCall className='align-text-bottom text-2xl text-inherit' />
-                </button>
+                </button> */}
             </div>
         </div>
     );

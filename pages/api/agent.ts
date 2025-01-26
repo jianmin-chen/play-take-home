@@ -31,7 +31,7 @@ export default async function handler(
                 voice: AUDIO_OPTIONS[voice].value,
                 voiceSpeed: options.speed ?? 1,
                 displayName: voice,
-                description: '',
+                description: 'Agent to interact with PDF',
                 prompt: 'You just took a look at the page of a PDF and your customer has a few questions about it. You should respond by using the information you have from the PDF, and external applicable knowledge on the main topic of the PDF.',
                 criticalKnowledge: `Here's a page of the PDF you have access to: ${options.ctx}`,
                 answerOnlyFromCriticalKnowledge: false,
