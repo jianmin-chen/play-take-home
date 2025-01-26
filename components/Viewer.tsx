@@ -315,11 +315,11 @@ export default function Viewer() {
                     <div ref={container}>
                         <div id='top' />
                         <Page
-                            height={
-                                wrapper.window.height >= wrapper.window.width
-                                    ? wrapper.window.height
-                                    : undefined
-                            }
+                            // height={
+                            //     wrapper.window.height >= wrapper.window.width
+                            //         ? wrapper.window.height
+                            //         : undefined
+                            // }
                             width={
                                 wrapper.window.width >= wrapper.window.height
                                     ? wrapper.width

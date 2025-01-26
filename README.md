@@ -1,5 +1,7 @@
 ## About
 
+![](public/desktop.png)
+
 Interact with a PDF using [play.ai](https://play.ai/)'s audio features.
 
 ## Features
