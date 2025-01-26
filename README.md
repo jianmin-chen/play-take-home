@@ -4,18 +4,18 @@ Interact with a PDF using [play.ai](https://play.ai/)'s audio features.
 
 ## Features
 
-- [X] PDF file upload
-    - [X] Parsed and displayed on a per-page basis
-    - [X] Navigate between pages
+- [x] PDF file upload
+    - [x] Parsed and displayed on a per-page basis
+    - [x] Navigate between pages
 - [ ] Audio playback for current page
-    - [X] TTS with [play.ai](https://play.ai/)'s TTS API, controls (play/pause) for audio playback
-    - [X] Dropdown for selecting voice
-    - [X] Progress indicator for generating audio for pages
-    - [ ] Adjust speed and temp of audio input.
+    - [x] TTS with [play.ai](https://play.ai/)'s TTS API, controls (play/pause) for audio playback
+    - [x] Dropdown for selecting voice
+    - [x] Progress indicator for generating audio for pages
+    - [x] Adjust speed and temp of audio input.
 - [ ] [play.ai]()'s Agent API to interact with agent on PDF content
 - [ ] Responsive UI
 
-* Arrows for back/forward
+* Arrows for back/forward, space for play/pause
 
 ## Install/Usage
 

@@ -17,6 +17,8 @@ export default async function handler(
             ? options.voice!
             : Object.keys(AUDIO_OPTIONS)[0];
 
+        console.log(options);
+
         const response = await fetch('https://api.play.ai/api/v1/tts/stream', {
             method: 'POST',
             headers: {

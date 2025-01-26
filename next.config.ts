@@ -1,11 +1,11 @@
-import { type NextConfig } from 'next';
+import {type NextConfig} from 'next';
 
 export default {
     experimental: {
         esmExternals: 'loose',
         turbo: {
             resolveAlias: {
-                canvas: "./empty-module.ts"
+                canvas: './empty-module.ts'
             }
         }
     },

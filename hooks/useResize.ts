@@ -7,10 +7,14 @@ interface Dimension {
 
 export default function useResize<T extends HTMLElement>(): [
     React.RefObject<T | null>,
-    Dimension
+    Dimension & {window: Dimension}
 ] {
     const ref = useRef<T>(null);
-    const [size, setSize] = useState<Dimension>({width: 0, height: 0});
+    const [size, setSize] = useState<Dimension & {window: Dimension}>({
+        width: 0,
+        height: 0,
+        window: {width: 0, height: 0}
+    });
 
     useEffect(() => {
         const container = ref.current;
@@ -21,7 +25,11 @@ export default function useResize<T extends HTMLElement>(): [
             const rect = container.getBoundingClientRect();
             setSize({
                 width: rect.width,
-                height: rect.height
+                height: rect.height,
+                window: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                }
             });
         };
 

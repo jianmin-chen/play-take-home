@@ -2,7 +2,7 @@
 
 type Highlight = Element & {
     // createObjectUrl returns appropriate result.
-    audioElement: HTMLAudioElement
+    audioElement: HTMLAudioElement;
 };
 
 export default class Highlighter {
@@ -33,14 +33,20 @@ export default class Highlighter {
                     ).blob();
                     node.audioElement = new Audio();
                     node.audioElement.src = window.URL.createObjectURL(blob);
-                    console.log(node.audioElement.src, index, this.nodes.length);
+                    console.log(
+                        node.audioElement.src,
+                        index,
+                        this.nodes.length
+                    );
                 }
             })
         );
         callback();
     }
 
-    next({scroll}: {scroll: boolean} = {scroll: true}): HTMLAudioElement | null {
+    next(
+        {scroll}: {scroll: boolean} = {scroll: true}
+    ): HTMLAudioElement | null {
         const selection = window.getSelection();
         const range = document.createRange();
         const node = this.nodes[this.index++];

@@ -1,10 +1,18 @@
 import Loader from './Loader';
+import Range from './Range';
+import VoiceDropdown from './VoiceDropdown';
 import useResize from '@/hooks/useResize';
 import AUDIO_OPTIONS, {type AudioOptions} from '@/utils/options';
 import type {PDFDocumentProxy} from 'pdfjs-dist/types/src/display/api';
 import {useEffect, useMemo, useRef, useState, type ChangeEvent} from 'react';
-import {IoIosCloudUpload} from 'react-icons/io';
-import {IoCall, IoPause, IoPlay} from 'react-icons/io5';
+import {
+    IoCall,
+    IoCloudUpload,
+    IoPause,
+    IoPlay,
+    IoSpeedometer,
+    IoThermometer
+} from 'react-icons/io5';
 import {Document, Page, pdfjs} from 'react-pdf';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import 'react-pdf/dist/esm/Page/TextLayer.css';
@@ -48,9 +56,13 @@ function Slider({
         }
     }, [input]);
 
+    useEffect(() => {
+        setInput((currentPageIndex + 1).toString());
+    }, [currentPageIndex]);
+
     return (
-        <div className='relative col-span-2 h-full overflow-auto bg-neutral-300 pb-3'>
-            <div className='sticky top-0 z-50 mb-3 flex items-center gap-1 bg-neutral-300 px-3 py-3 shadow-sm'>
+        <div className='relative col-span-2 h-full overflow-auto bg-neutral-300 py-3 pb-3 md:py-0'>
+            <div className='sticky top-0 z-50 mb-3 hidden items-center gap-1 bg-neutral-300 px-3 py-3 shadow-sm md:flex'>
                 <input
                     onChange={event => {
                         event.preventDefault();
@@ -135,7 +147,7 @@ export default function Viewer() {
     // Store ref to PDFDocumentProxy for cleanup.
     const document = useRef<PDFDocumentProxy>(null);
     const audioElement = useRef<HTMLAudioElement>(null);
-    const jobs = useRef<Promise<any>[]>([]);
+    const jobs = useRef<AbortController[]>([]);
 
     const documentLoad = (props: PDFDocumentProxy) => {
         setNumPages(props.numPages);
@@ -157,22 +169,26 @@ export default function Viewer() {
             audioElement.current.remove();
             audioElement.current = null;
         }
+        setPlaying(PlayingState.none);
     };
 
-    const beginTts = () => new Promise((resolve, reject) => {
-        fetch("/api/tts", {
-            method: "POST",
-            body: JSON.stringify({
-                ...options,
-                text: container.current!.textContent
+    const beginTts = () =>
+        new Promise((resolve, reject) => {
+            fetch('/api/tts', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...options,
+                    text: container.current!.textContent
+                })
             })
-        }).then(res => res.blob()).then(blob => {
-            audioElement.current = new Audio();
-            audioElement.current.src = window.URL.createObjectURL(blob);
-            setPlaying(PlayingState.playing);
-            resolve(null);
-        })
-    })
+                .then(res => res.blob())
+                .then(blob => {
+                    audioElement.current = new Audio();
+                    audioElement.current.src = window.URL.createObjectURL(blob);
+                    setPlaying(PlayingState.playing);
+                    resolve(null);
+                });
+        });
 
     useEffect(() => {
         // `playing` just changed - update accordingly.
@@ -188,9 +204,12 @@ export default function Viewer() {
         } else if (playing === PlayingState.none) {
             if (audioElement.current) audioElement.current.pause();
         } else if (playing === PlayingState.loading) {
-            jobs.current.push(beginTts());
+            beginTts();
         }
     }, [playing]);
+
+    // Agent options.
+    const [agent, setAgent] = useState<string | null>(null);
 
     const upload = (event: ChangeEvent<HTMLInputElement>) => {
         const {files} = event.target;
@@ -205,7 +224,10 @@ export default function Viewer() {
                 setCurrentPageIndex(old => old + 1);
             else if (event.code === 'ArrowLeft' && currentPageIndex !== 0)
                 setCurrentPageIndex(old => old - 1);
-            else if (event.code === "Space") toggleTts();
+            else if (event.code === 'Space') {
+                event.preventDefault();
+                toggleTts();
+            }
         };
 
         window.addEventListener('keydown', keydown);
@@ -264,13 +286,22 @@ export default function Viewer() {
                     <div ref={container}>
                         <div id='top' />
                         <Page
-                            width={wrapper.width}
+                            height={
+                                wrapper.window.height >= wrapper.window.width
+                                    ? wrapper.window.height
+                                    : undefined
+                            }
+                            width={
+                                wrapper.window.width >= wrapper.window.height
+                                    ? wrapper.width
+                                    : undefined
+                            }
                             pageIndex={currentPageIndex}
                         />
                     </div>
                 </div>
             </Document>
-            <div className='flex w-full flex-1 items-center justify-between border-t border-neutral-200 bg-white px-6 py-2'>
+            <div className='flex w-full flex-1 items-center justify-between border-t border-neutral-200 bg-white px-6 py-2 shadow-2xl'>
                 <label className='cursor-pointer text-neutral-700 transition-all ease-out hover:text-lime-600'>
                     <input
                         title='Upload PDF'
@@ -278,9 +309,16 @@ export default function Viewer() {
                         type='file'
                         className='hidden'
                     />
-                    <IoIosCloudUpload className='text-xl text-inherit' />
+                    <IoCloudUpload className='text-2xl text-inherit' />
                 </label>
-                <div className='flex items-center justify-center gap-4'>
+                <div className='flex items-center justify-center gap-8'>
+                    <VoiceDropdown
+                        voice={options.voice!}
+                        setVoice={voice => {
+                            setOptions(old => ({...old, voice}));
+                        }}
+                        options={AUDIO_OPTIONS}
+                    />
                     <button
                         disabled={playing === PlayingState.loading}
                         onClick={toggleTts}
@@ -298,9 +336,31 @@ export default function Viewer() {
                             <Loader background='white' />
                         )}
                     </button>
+                    <div className='flex gap-1'>
+                        <Range
+                            min={0.1}
+                            title='Speed'
+                            max={5}
+                            value={options.speed ?? 0}
+                            setValue={speed => {
+                                setOptions(old => ({...old, speed}));
+                            }}
+                            icon={<IoSpeedometer className='text-2xl' />}
+                        />
+                        <Range
+                            title='Temperature'
+                            min={0}
+                            max={2}
+                            value={options.temperature ?? 0}
+                            setValue={temperature => {
+                                setOptions(old => ({...old, temperature}));
+                            }}
+                            icon={<IoThermometer className='text-2xl' />}
+                        />
+                    </div>
                 </div>
                 <button className='cursor-pointer text-neutral-700 transition-all ease-out hover:scale-[105%] hover:text-lime-600'>
-                    <IoCall className='align-text-bottom text-xl text-inherit' />
+                    <IoCall className='align-text-bottom text-2xl text-inherit' />
                 </button>
             </div>
         </div>

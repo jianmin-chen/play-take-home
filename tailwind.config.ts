@@ -1,4 +1,4 @@
-import type { Config } from 'tailwindcss';
+import type {Config} from 'tailwindcss';
 
 export default {
     content: [
@@ -10,7 +10,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ["'Archivo', 'Inter', sans-serif"],
-                mono: ["Monaco, monospace"]
+                mono: ['Monaco, monospace']
             }
         }
     },
