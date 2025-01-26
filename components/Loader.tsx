@@ -1,20 +1,22 @@
 import styles from './Loader.module.scss';
 
-export default function Loader() {
+export default function Loader(
+    {background}: {background: string}
+) {
     return (
         <div className={styles.spinner}>
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
-            <div />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
+            <div style={{background}} />
         </div>
     );
 }

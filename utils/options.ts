@@ -12,10 +12,12 @@ export interface Option {
 export interface AudioOptions {
     voice?: string;
     text?: string;
+    speed?: number;
+    temperature?: number;
 }
 
 export default {
-    "Angelo": {
+    Angelo: {
         name: 'Angelo',
         accent: 'american',
         language: 'English (US)',
@@ -25,7 +27,7 @@ export default {
         gender: 'male',
         style: 'Conversational'
     },
-    "Deedee": {
+    Deedee: {
         name: 'Deedee',
         accent: 'american',
         language: 'English (US)',
@@ -35,7 +37,7 @@ export default {
         gender: 'female',
         style: 'Conversational'
     },
-    "Jennifer": {
+    Jennifer: {
         name: 'Jennifer',
         accent: 'american',
         language: 'English (US)',
@@ -45,7 +47,7 @@ export default {
         gender: 'female',
         style: 'Conversational'
     },
-    "Briggs": {
+    Briggs: {
         name: 'Briggs',
         accent: 'american',
         language: 'English (US)',
@@ -55,7 +57,7 @@ export default {
         gender: 'male',
         style: 'Narrative'
     },
-    "Samara": {
+    Samara: {
         name: 'Samara',
         accent: 'american',
         language: 'English (US)',

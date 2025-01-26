@@ -15,7 +15,7 @@ export default function VoiceDropdown({
 
     return (
         <div className='relative'>
-            <button onClick={() => setShowDropdown(!showDropdown)} className='flex items-center justify-between gap-2 rounded-md border border-neutral-200 px-4'>
+            <button onClick={() => setShowDropdown(!showDropdown)} className='bg-white flex items-center justify-between gap-2 rounded-md border border-neutral-200 px-4'>
                 {voice}
                 <RiArrowDropDownFill />
             </button>

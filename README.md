@@ -15,6 +15,8 @@ Interact with a PDF using [play.ai](https://play.ai/)'s audio features.
 - [ ] [play.ai]()'s Agent API to interact with agent on PDF content
 - [ ] Responsive UI
 
+* Arrows for back/forward
+
 ## Install/Usage
 
 Clone this repo.
@@ -26,12 +28,8 @@ PLAY_API_KEY=
 PLAY_USER_ID=
 ```
 
-Run `npm i && npm run dev`.
+Run `yarn i && yarn run dev`, or with your package manager of choice.
 
 ## Behind-the-scenes
 
 Next.js, TypeScript, and Tailwind.
-
-One of the things I decided to do was to try and break a page into "chunks" so we could see as the TTS model moved across the page and highlighted each chunk.
-
-Unfortunately, the library I use is a wrapper around Mozilla's `PDF.js`, which separates the text and image layer into two separate `div`s. I spent a lot of time trying to get this to work before realizing it wouldn't be feasible given time constraints. Still - a fascinating problem.

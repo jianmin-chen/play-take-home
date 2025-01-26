@@ -1,47 +1,48 @@
-import AUDIO_OPTIONS, { type AudioOptions } from '@/utils/options';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { Readable } from 'stream';
-
-const expect = (ok: boolean, message: string) => {
-    if (!ok) throw new Error(message);
-};
+import expect from '@/utils/expect';
+import AUDIO_OPTIONS, {type AudioOptions} from '@/utils/options';
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {Readable} from 'stream';
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
     try {
-        if (req.method !== 'POST') throw new Error('POST to endpoint');
-        const {voice, text}: AudioOptions =
-            JSON.parse(req.body);
-        expect(
-            Object.keys(AUDIO_OPTIONS).includes(voice ?? ""),
-            `Expect audioOption to be one of ${Object.keys(AUDIO_OPTIONS).join(' | ')}, got ${voice}`
-        );
+        expect(req.method === 'POST', 'POST to endpoint');
+        const options: AudioOptions = JSON.parse(req.body);
+
+        expect(options.text != undefined, 'Expect text');
+
+        const voice = Object.keys(AUDIO_OPTIONS).includes(options.voice ?? '')
+            ? options.voice!
+            : Object.keys(AUDIO_OPTIONS)[0];
+
         const response = await fetch('https://api.play.ai/api/v1/tts/stream', {
             method: 'POST',
             headers: {
-                'AUTHORIZATION': process.env.PLAY_API_KEY,
-                'X-USER-ID': process.env.PLAY_USER_ID,
+                'Authorization': process.env.PLAY_API_KEY,
+                'X-User-Id': process.env.PLAY_USER_ID,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 model: 'PlayDialog',
-                text,
-                voice: AUDIO_OPTIONS[voice!].value,
+                text: options.text,
+                voice: AUDIO_OPTIONS[voice].value,
                 language: 'english',
-                // TODO: Replace with appropriate values.
-                speed: 1,
-                temperature: null
+                speed: options.speed ?? 1,
+                temperature: options.temperature ?? null
             })
         });
 
-        // @ts-ignore
+        expect(
+            response.body != null,
+            `Error running text-to-speech. Try again?`
+        );
+
+        // @ts-expect-error
         const stream = Readable.fromWeb(response.body!);
 
-        res.writeHead(200, {
-            "Content-Type": "audio/mpeg",
-        })
+        res.writeHead(200, {'Content-Type': 'audio/mpeg'});
         stream.pipe(res);
     } catch (err) {
         console.log(err);
