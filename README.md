@@ -13,7 +13,7 @@ Interact with a PDF using [play.ai](https://play.ai/)'s audio features.
     - [x] Progress indicator for generating audio for pages
     - [x] Adjust speed and temp of audio input.
 - [ ] [play.ai]()'s Agent API to interact with agent on PDF content
-- [X] Responsive UI
+- [ ] Responsive UI
 
 * Arrows for back/forward, space for play/pause
 
